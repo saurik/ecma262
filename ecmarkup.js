@@ -34,18 +34,19 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+var CLAUSE_NODES = ['EMU-CLAUSE', 'EMU-INTRO', 'EMU-ANNEX'];
 function findLocalReferences ($elem) {
   var name = $elem.innerHTML;
-  var parentAlg = $elem.parentNode;
   var references = [];
 
-  while (parentAlg && parentAlg.nodeName !== 'EMU-ALG') {
-    parentAlg = parentAlg.parentNode;
+  var parentClause = $elem.parentNode;
+  while (parentClause && CLAUSE_NODES.indexOf(parentClause.nodeName) === -1) {
+    parentClause = parentClause.parentNode;
   }
 
-  if(!parentAlg) return;
+  if(!parentClause) return;
 
-  var vars = parentAlg.querySelectorAll('var');
+  var vars = parentClause.querySelectorAll('var');
 
   for (var i = 0; i < vars.length; i++) {
     var $var = vars[i];
@@ -72,13 +73,11 @@ function toggleFindLocalReferences($elem) {
 }
 
 function installFindLocalReferences () {
-  var vars = document.querySelectorAll('emu-alg var');
-
-  for (var i = 0; i < vars.length; i++) {
-    var $var = vars[i];
-
-    $var.addEventListener('click', toggleFindLocalReferences.bind(null, $var));
-  }
+  document.addEventListener('click', function (e) {
+    if (e.target.nodeName === 'VAR') {
+      toggleFindLocalReferences(e.target);
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', installFindLocalReferences);
