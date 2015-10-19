@@ -73,13 +73,15 @@ Menu.prototype.search = function (needle) {
     this.showSearch();
   }
 
+  needle = needle.toLowerCase();
+
   var results = {};
   var seenClauses = {};
 
   results.ops = Object.keys(this.biblio.ops).map(function (k) {
     return this.biblio.ops[k];
   }.bind(this)).filter(function(op) {
-    return fuzzysearch(needle, op.aoid);
+    return fuzzysearch(needle, op.aoid.toLowerCase());
   });
 
   results.ops.forEach(function(op) {
@@ -89,13 +91,13 @@ Menu.prototype.search = function (needle) {
   results.productions = Object.keys(this.biblio.productions).map(function (k) {
     return this.biblio.productions[k];
   }.bind(this)).filter(function(prod) {
-    return fuzzysearch(needle, prod.name);
+    return fuzzysearch(needle, prod.name.toLowerCase());
   });
 
   results.clauses = Object.keys(this.biblio.clauses).map(function (k) {
     return this.biblio.clauses[k];
   }.bind(this)).filter(function(clause) {
-    return !seenClauses[clause.id] && (clause.number === needle || fuzzysearch(needle, clause.title));
+    return !seenClauses[clause.id] && (clause.number.indexOf(needle) === 0 || fuzzysearch(needle, clause.title.toLowerCase()));
   });
 
   this.displayResults(results);
