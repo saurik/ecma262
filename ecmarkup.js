@@ -20,10 +20,10 @@ function Menu() {
     }
   }.bind(this));
 
-  this.$searchBox.addEventListener('keyup', function (e) {
+  this.$searchBox.addEventListener('keyup', debounce(function (e) {
     e.stopPropagation();
     this.search(e.target.value);
-  }.bind(this));
+  }.bind(this)));
 
 
   var tocItems = this.$menu.querySelectorAll('#menu-toc li');
@@ -46,7 +46,19 @@ function Menu() {
 }
 
 Menu.prototype.toggle = function () {
-  this.$menu.classList.toggle("active");
+  this.$menu.classList.toggle('active');
+}
+
+Menu.prototype.show = function () {
+  this.$menu.classList.add('active');
+}
+
+Menu.prototype.hide = function () {
+  this.$menu.classList.remove('active');
+}
+
+Menu.prototype.isVisible = function() {
+  return this.$menu.classList.contains('active');
 }
 
 Menu.prototype.initSearch = function () {
@@ -61,6 +73,15 @@ Menu.prototype.initSearch = function () {
     if (e.keyCode === 191) {
       e.preventDefault();
       e.stopPropagation();
+
+      if(this.isVisible()) {
+        this._closeAfterSearch = false;
+      } else {
+        this._closeAfterSearch = true;
+        this.show();
+      }
+
+      this.show();
       this.$searchBox.focus();
     }
   }.bind(this))
@@ -99,6 +120,10 @@ Menu.prototype.search = function (needle) {
   }.bind(this)).filter(function(clause) {
     return !seenClauses[clause.id] && (clause.number.indexOf(needle) === 0 || fuzzysearch(needle, clause.title.toLowerCase()));
   });
+
+  if (results.length > 50) {
+    results = results.slice(0, 50);
+  }
 
   this.displayResults(results);
 }
@@ -143,12 +168,16 @@ Menu.prototype.selectResult = function () {
   var $first = this.$searchResults.querySelector('li:first-child a');
 
   if ($first) {
-    document.location = $first.getAttribute('href');;
+    document.location = $first.getAttribute('href');
   }
 
   this.$searchBox.value = '';
   this.$searchBox.blur();
   this.hideSearch();
+
+  if (this._closeAfterSearch) {
+    this.hide();
+  }
 }
 
 function init() {
@@ -156,6 +185,20 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+function debounce(fn) {
+  var timeout;
+  return function() {
+    var args = arguments;
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(function() {
+      timeout = null;
+      fn.apply(this, args);
+    }.bind(this), 150);
+  }
+}
 
 // The following license applies to the fuzzysearch function
 // The MIT License (MIT)
